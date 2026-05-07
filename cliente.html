@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Chat WebSocket</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #0f172a;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.app {
+    width: 900px;
+    height: 600px;
+    background: #e2e8f0;
+    border-radius: 20px;
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    overflow: hidden;
+}
+
+.sidebar {
+    background: #0f172a;
+    color: white;
+    padding: 20px;
+}
+
+.sidebar input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    margin-bottom: 10px;
+}
+
+.sidebar button {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    background: #38bdf8;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.usuarios ul {
+    padding-left: 20px;
+}
+
+.usuarios li {
+    background: #1e293b;
+    padding: 8px;
+    border-radius: 8px;
+    margin-bottom: 6px;
+}
+
+.chat-area {
+    height: 600px;
+    display: grid;
+    grid-template-rows: 1fr 70px;
+}
+
+#chat {
+    min-height: 0;
+    overflow-y: scroll;
+    padding: 20px;
+    background: #e2e8f0;
+}
+
+.msg {
+    max-width: 70%;
+    padding: 12px;
+    border-radius: 14px;
+    margin-bottom: 12px;
+    background: white;
+}
+.estado {
+    display: block;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.rojo {
+    color: #ef4444;
+}
+
+.verde {
+    color: #22c55e;
+}
+
+.msg.own {
+    background: #2563eb;
+    color: white;
+    margin-left: auto;
+}
+
+.msg.system {
+    background: transparent;
+    color: #334155;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.input-area {
+    background: white;
+    padding: 12px;
+    display: flex;
+    gap: 10px;
+    border-top: 1px solid #cbd5e1;
+}
+
+.input-area input {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #94a3b8;
+    font-size: 15px;
+}
+
+.input-area button {
+    width: 110px;
+    border: none;
+    border-radius: 10px;
+    background: #2563eb;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+    <div class="sidebar">
+        <h2>WebSocket Chat</h2>
+
+        <input type="text" id="username" placeholder="Tu nombre">
+        <button onclick="entrar()">Entrar</button>
+
+        <div class="usuarios">
+            <h3>Usuarios</h3>
+            <ul id="usuarios"></ul>
+        </div>
+    </div>
+
+    <div class="chat-area">
+        <div id="chat"></div>
+
+        <div class="input-area">
+            <input type="text" id="message" placeholder="Escribe un mensaje">
+            <button onclick="enviarMensaje()">Enviar</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+<script>
+const socket = io('http://localhost:5000')
+let username = ''
+
+function entrar() {
+    username = document.getElementById('username').value.trim()
+
+    if (!username) {
+        alert('Ingresa un nombre')
+        return
+    }
+
+    socket.emit('set_username', { username })
+    document.getElementById('username').disabled = true
+}
+
+function enviarMensaje() {
+    const message = document.getElementById('message').value.trim()
+
+    if (!message) return
+
+    if (message === '/salir') {
+        socket.disconnect()
+        agregarSistema('Te desconectaste del chat')
+        document.getElementById('message').disabled = true
+        return
+    }
+
+    socket.emit('chat_message', { message })
+    document.getElementById('message').value = ''
+}
+
+document.getElementById('message').addEventListener('keydown', function(event) {
+    if (event.key === 'Enter') {
+        enviarMensaje()
+    }
+})
+
+socket.on('connect', () => {
+    agregarSistema('Conectado al servidor')
+})
+
+socket.on('user_joined', (data) => {
+    agregarSistema(data.username + ' se unió')
+})
+
+socket.on('user_left', (data) => {
+    agregarSistema(data.username + ' salió')
+})
+
+socket.on('user_list', (data) => {
+    const lista = document.getElementById('usuarios')
+    lista.innerHTML = ''
+
+    data.users.forEach(user => {
+        const li = document.createElement('li')
+        li.textContent = user
+        lista.appendChild(li)
+    })
+})
+
+socket.on('chat_message', (data) => {
+    const propio = data.username === username
+    agregarMensaje(data, propio)
+})
+
+socket.on('message_status', (data) => {
+    const estado = document.getElementById('estado-' + data.id)
+
+    if (estado) {
+        estado.textContent = ' ● recibido'
+        estado.classList.remove('rojo')
+        estado.classList.add('verde')
+    }
+})
+
+socket.on('delete_message', (data) => {
+    const mensaje = document.getElementById(data.id)
+
+    if (mensaje) {
+        mensaje.remove()
+    }
+})
+
+function agregarMensaje(data, propio) {
+    const chat = document.getElementById('chat')
+    const div = document.createElement('div')
+
+    div.id = data.id
+    div.className = propio ? 'msg own' : 'msg'
+
+    div.innerHTML = `
+        <strong>${propio ? 'Tú' : data.username}</strong><br>
+        ${data.message}<br>
+        <small>${data.timestamp}</small>
+        <span class="estado rojo" id="estado-${data.id}"> ● enviado</span>
+    `
+
+    chat.appendChild(div)
+    chat.scrollTop = chat.scrollHeight
+}
+
+function agregarSistema(text) {
+    const chat = document.getElementById('chat')
+    const div = document.createElement('div')
+
+    div.className = 'msg system'
+    div.textContent = text
+
+    chat.appendChild(div)
+    chat.scrollTop = chat.scrollHeight
+}
+</script>
+
+</body>
+</html>

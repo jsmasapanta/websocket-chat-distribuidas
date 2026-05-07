@@ -1,0 +1,58 @@
+tiene un cliente de consola que es .js 
+si quiero ocupar con mas clientes 
+realizar un cliente web 
+utilizando webcomponents
+
+web componente vanilla.js
+
+llamamos un html desde js
+
+guardamos todo el html en un js
+
+
+cliente web o html normal sin problema 
+
+
+
+Cómo explicarlo al inge (IMPORTANTE)
+
+Si te pregunta, dile algo así:
+
+“Se implementó un sistema distribuido basado en 
+WebSockets donde múltiples clientes heterogéneos 
+(CLI, HTML y Web Components) se conectan a un 
+servidor Flask-SocketIO, permitiendo comunicación 
+bidireccional en tiempo real. Además, se utilizó 
+Vanilla JavaScript Components para encapsular la 
+interfaz del cliente mediante Shadow DOM.”
+
+🧠 Explicación sencilla (como te gusta)
+
+👉 HTML normal = como un cuaderno
+
+Todo mezclado
+Difícil de reutilizar
+
+👉 Web Components = como módulos militares
+
+Cada uno tiene su función
+Independientes
+Reutilizables en cualquier misión
+🎯 Cómo responderle al inge
+
+Puedes decir:
+
+“El HTML normal manipula directamente el DOM global, 
+mientras que los Web Components en Vanilla JavaScript 
+permiten crear elementos personalizados reutilizables 
+con encapsulación mediante Shadow DOM, mejorando la 
+modularidad y escalabilidad del sistema.”
+
+
+
+mis mensajes se destruyan 
+notificaciones de lectura. cambiar un icono de rojo a verde
+
+
+servidor un print log, es decir como hago para que el servidor no vea mis mensajes y mis mensajes 
+sean privados y sean encriptados 

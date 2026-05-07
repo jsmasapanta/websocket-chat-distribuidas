@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat Web Component PRO</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
+        .container {
+            width: 950px;
+            height: 620px;
+            background: #f8fafc;
+            border-radius: 22px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            color: #111827;
+        }
+
+        h1 {
+            margin: 0 0 15px;
+            font-size: 28px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Cliente WebSocket con Vanilla JavaScript Components</h1>
+
+    <chat-component></chat-component>
+</div>
+
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script src="chat-component.js"></script>
+
+</body>
+</html>
