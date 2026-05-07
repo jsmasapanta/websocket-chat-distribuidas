@@ -146,8 +146,9 @@ body {
     <div class="sidebar">
         <h2>WebSocket Chat</h2>
 
-        <input type="text" id="username" placeholder="Tu nombre">
-        <button onclick="entrar()">Entrar</button>
+        <input type="text" id="username" placeholder="Ingrese su nombre">
+        <input type="password" id="password" placeholder="Registre una contraseña">
+        <button onclick="entrar()">Ingresar</button>
 
         <div class="usuarios">
             <h3>Usuarios</h3>
@@ -173,14 +174,14 @@ let username = ''
 
 function entrar() {
     username = document.getElementById('username').value.trim()
+    const password = document.getElementById('password').value.trim()
 
-    if (!username) {
-        alert('Ingresa un nombre')
+    if (!username || !password) {
+        alert('Ingresa usuario y clave')
         return
     }
 
-    socket.emit('set_username', { username })
-    document.getElementById('username').disabled = true
+    socket.emit('set_username', { username, password })
 }
 
 function enviarMensaje() {
@@ -208,6 +209,19 @@ document.getElementById('message').addEventListener('keydown', function(event) {
 socket.on('connect', () => {
     agregarSistema('Conectado al servidor')
 })
+
+socket.on('auth_success', (data) => {
+    username = data.username
+    agregarSistema('Acceso correcto: ' + username)
+
+    document.getElementById('username').disabled = true
+    document.getElementById('password').disabled = true
+})
+
+socket.on('auth_error', (data) => {
+    alert(data.message)
+})
+
 
 socket.on('user_joined', (data) => {
     agregarSistema(data.username + ' se unió')

@@ -45,17 +45,27 @@ const displayMessage = (data, isOwn = false) => {
     console.log(`${prefix} [${data.timestamp || ''}]: ${data.message}`);
 };
 
+const askPassword = () => {
+    return new Promise((resolve) => {
+        rl.question('Registre una contraseña: ', (answer) => {
+            resolve(answer.trim())
+        })
+    })
+}
+
 // Eventos del socket (todos con arrow functions)
 
 socket.on('connect', () => {
-    console.log('✅ Conectado al servidor de chat.');
+    console.log('✅ Conectado al servidor de chat.')
+
     askUsername().then((name) => {
-        username = name;
-        socket.emit('set_username', { username });
-        console.log(`🎉 Bienvenido al chat, ${username}! Escribe /salir para terminar.\n`);
-        rl.prompt();
-    });
-});
+        username = name
+
+        askPassword().then((password) => {
+            socket.emit('set_username', { username, password })
+        })
+    })
+})
 
 socket.on('user_joined', (data) => {
     console.log(`🟢 ${data.username} se ha unido al chat.`);
@@ -68,6 +78,19 @@ socket.on('user_left', (data) => {
 socket.on('user_list', (data) => {
     console.log(`👥 Usuarios conectados: ${data.users.join(', ') || 'solo tú'}`);
 });
+
+
+socket.on('connect', () => {
+    console.log('✅ Conectado al servidor de chat.')
+
+    askUsername().then((name) => {
+        username = name
+
+        askPassword().then((password) => {
+            socket.emit('set_username', { username, password })
+        })
+    })
+})
 
 socket.on('chat_message', (data) => {
     const isOwn = (data.username === username);

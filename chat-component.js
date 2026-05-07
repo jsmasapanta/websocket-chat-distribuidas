@@ -116,8 +116,9 @@ class ChatComponent extends HTMLElement {
 
         <div class="app">
             <div class="sidebar">
-                <input id="username" placeholder="Tu nombre">
-                <button id="entrar">Entrar</button>
+                <input id="username" placeholder="Ingrese su nombre">
+                <input id="password" type="password" placeholder="Registre una contraseña">
+                <button id="entrar">Ingresar</button>
 
                 <div class="usuarios">
                     <h3>Usuarios</h3>
@@ -149,9 +150,36 @@ class ChatComponent extends HTMLElement {
         const usuarios = $('#usuarios')
 
         $('#entrar').onclick = () => {
-            this.username = $('#username').value
-            this.socket.emit('set_username', { username: this.username })
+            this.username = $('#username').value.trim()
+            const password = $('#password').value.trim()
+
+            if (!this.username || !password) {
+                alert('Ingrese su nombre y registre una contraseña')
+                return
+            }
+
+            this.socket.emit('set_username', {
+                username: this.username,
+                password: password
+            })
         }
+
+
+        this.socket.on('auth_success', (data) => {
+            this.username = data.username
+            this.system(chat, 'Acceso correcto: ' + this.username)
+
+            $('#username').disabled = true
+            $('#password').disabled = true
+            $('#entrar').disabled = true
+        })
+
+        this.socket.on('auth_error', (data) => {
+            alert(data.message)
+        })
+
+
+
 
         $('#enviar').onclick = () => {
 
