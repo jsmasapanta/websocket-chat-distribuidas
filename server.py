@@ -68,7 +68,7 @@ def handle_send_message(data):
 
     emit("message_status", {
         "id": message_id,
-        "status": "recibido"
+        "status": "enviado"
     })
 
     socketio.start_background_task(delete_message_later, message_id)
@@ -83,6 +83,25 @@ def handle_disconnect():
     print(f'Cliente desconectado: {request.sid} ({username})')
     emit("user_left", {"username": username}, broadcast=True)
     emit("user_list", {"users": list(usuarios.values())}, broadcast=True)
+
+@socketio.on("message_read")
+def handle_message_read(data):
+    message_id = data.get("id")
+    sender = data.get("sender")
+
+    for sid, username in usuarios.items():
+        if username == sender:
+            socketio.emit(
+                "message_status",
+                {
+                    "id": message_id,
+                    "status": "leido"
+                },
+                to=sid
+            )
+            break
+
+
 
 if __name__ == '__main__':
     socketio.run(app, host='localhost', port=5000, debug=True)

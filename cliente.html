@@ -104,6 +104,21 @@ body {
     margin-left: auto;
 }
 
+.estado {
+    display: block;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.gris {
+    color: #94a3b8;
+}
+
+.verde {
+    color: #22c55e;
+    font-weight: bold;
+}
+
 .msg.system {
     background: transparent;
     color: #334155;
@@ -250,9 +265,17 @@ socket.on('chat_message', (data) => {
 socket.on('message_status', (data) => {
     const estado = document.getElementById('estado-' + data.id)
 
-    if (estado) {
-        estado.textContent = ' ● recibido'
-        estado.classList.remove('rojo')
+    if (!estado) return
+
+    if (data.status === 'enviado') {
+        estado.textContent = '✓ enviado'
+        estado.classList.remove('verde')
+        estado.classList.add('gris')
+    }
+
+    if (data.status === 'leido') {
+        estado.textContent = '✓✓ leído'
+        estado.classList.remove('gris')
         estado.classList.add('verde')
     }
 })
@@ -272,12 +295,25 @@ function agregarMensaje(data, propio) {
     div.id = data.id
     div.className = propio ? 'msg own' : 'msg'
 
-    div.innerHTML = `
-        <strong>${propio ? 'Tú' : data.username}</strong><br>
-        ${data.message}<br>
-        <small>${data.timestamp}</small>
-        <span class="estado rojo" id="estado-${data.id}"> ● enviado</span>
-    `
+    if (propio) {
+        div.innerHTML = `
+            <strong>Tú</strong><br>
+            ${data.message}<br>
+            <small>${data.timestamp}</small>
+            <span class="estado gris" id="estado-${data.id}">✓ enviado</span>
+        `
+    } else {
+        div.innerHTML = `
+            <strong>${data.username}</strong><br>
+            ${data.message}<br>
+            <small>${data.timestamp}</small>
+        `
+
+        socket.emit('message_read', {
+            id: data.id,
+            sender: data.username
+        })
+    }
 
     chat.appendChild(div)
     chat.scrollTop = chat.scrollHeight

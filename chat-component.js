@@ -41,6 +41,21 @@ class ChatComponent extends HTMLElement {
                 font-weight: bold;
             }
 
+            .estado {
+                display: block;
+                font-size: 12px;
+                margin-top: 4px;
+            }
+
+            .gris {
+                color: #94a3b8;
+            }
+
+            .verde {
+                color: #22c55e;
+                font-weight: bold;
+            }
+
             .usuarios {
                 margin-top: 20px;
             }
@@ -178,7 +193,23 @@ class ChatComponent extends HTMLElement {
             alert(data.message)
         })
 
+        this.socket.on('message_status', (data) => {
+            const estado = this.shadowRoot.querySelector('#estado-' + data.id)
 
+            if (!estado) return
+
+            if (data.status === 'enviado') {
+                estado.textContent = '✓ enviado'
+                estado.classList.remove('verde')
+                estado.classList.add('gris')
+            }
+
+            if (data.status === 'leido') {
+                estado.textContent = '✓✓ leído'
+                estado.classList.remove('gris')
+                estado.classList.add('verde')
+            }
+        })
 
 
         $('#enviar').onclick = () => {
@@ -220,15 +251,29 @@ class ChatComponent extends HTMLElement {
             div.id = data.id
             div.className = 'msg ' + (isOwn ? 'own' : 'other')
 
-            div.innerHTML = `
-                <b>${isOwn ? 'Tú' : data.username}</b><br>
-                ${data.message}<br>
-                <small>${data.timestamp}</small>
-            `
+            if (isOwn) {
+                div.innerHTML = `
+                    <b>Tú</b><br>
+                    ${data.message}<br>
+                    <small>${data.timestamp}</small>
+                    <span class="estado gris" id="estado-${data.id}">✓ enviado</span>
+                `
+            } else {
+                div.innerHTML = `
+                    <b>${data.username}</b><br>
+                    ${data.message}<br>
+                    <small>${data.timestamp}</small>
+                `
 
-            chat.appendChild(div)
-            chat.scrollTop = chat.scrollHeight
-        })
+                this.socket.emit('message_read', {
+                    id: data.id,
+                    sender: data.username
+                })
+            }
+
+    chat.appendChild(div)
+    chat.scrollTop = chat.scrollHeight
+})
 
         this.socket.on('user_joined', (d) => {
             this.system(chat, d.username + ' se unió')
